@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ข้อมูลผู้จัดทำ - w02</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef2f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .profile-card {
+      background: white;
+      width: 100%;
+      max-width: 400px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+      border: 4px solid #3498db;
+    }
+    h2 { color: #2c3e50; margin-bottom: 5px; }
+    .subtitle { color: #3498db; font-weight: 600; margin-bottom: 20px; }
+    .info-list { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; }
+    .info-item { margin: 10px 0; font-size: 0.95rem; color: #555; }
+    .info-item strong { color: #2c3e50; }
+    .footer { margin-top: 20px; font-size: 0.8rem; color: #888; }
+  </style>
+</head>
+<body>
+
+  <div class="profile-card">
+    <!-- รูปโปรไฟล์ -->
+    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Student" alt="Profile" class="avatar">
+    
+    <!-- ชื่อผู้จัดทำ -->
+    <h2>นาย ไชยวํฒน์ สิงขรณ์</h2>
+    <div class="subtitle">ผู้จัดทำระบบ (Developer)</div>
+
+    <!-- รายละเอียดข้อมูล -->
+    <div class="info-list">
+      <div class="info-item"><strong>รหัสนักศึกษา:</strong> 6714421023</div>
+      <div class="info-item"><strong>สาขาวิชา:</strong> It</div>
+      <div class="info-item"><strong>คณะ/วิทยาลัย:</strong> วิทยาการคอมพิวเตอร์และเทคโนโลยีสารสนเทศ</div>
+      <div class="info-item"><strong>อีเมล:</strong> 6714421023@rbru.ac.th</div>
+    </div>
+
+    <div class="footer">
+      ใบงาน w02 - หน้าแสดงข้อมูลผู้จัดทำ
+    </div>
+  </div>
+
+</body>
+</html>
