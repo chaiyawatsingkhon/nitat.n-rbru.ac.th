@@ -1,8 +1,50 @@
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(const MyApp());
+// 1. โมเดลข้อมูลสินค้า (Product Model)
+class Product {
+  final int id;
+  final String title;
+  final String description;
+  final double price;
+  final String thumbnail;
+
+  const Product({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.price,
+    required this.thumbnail,
+  });
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      price: (json['price'] as num).toDouble(),
+      thumbnail: json['thumbnail'],
+    );
+  }
 }
+
+// 2. ฟังก์ชันดึงข้อมูลจาก API
+Future<List<Product>> fetchProducts() async {
+  final response = await http.get(
+    Uri.parse('https://dummyjson.com/products'),
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    final List<dynamic> productsJson = data['products'];
+    return productsJson.map((json) => Product.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to load products');
+  }
+}
+
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -11,188 +53,90 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'w06 Form Demo',
+      title: 'DummyJSON API Demo',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const BoardGameFormScreen(),
+      home: const ProductListScreen(),
     );
   }
 }
 
-class BoardGameFormScreen extends StatefulWidget {
-  const BoardGameFormScreen({super.key});
+class ProductListScreen extends StatefulWidget {
+  const ProductListScreen({super.key});
 
   @override
-  State<BoardGameFormScreen> createState() => _BoardGameFormScreenState();
+  State<ProductListScreen> createState() => _ProductListScreenState();
 }
 
-class _BoardGameFormScreenState extends State<BoardGameFormScreen> {
-  // Key สำหรับระบุและควบคุมสถานะของ Form
-  final _formKey = GlobalKey<FormState>();
-
-  // 1. Controller สำหรับ TextFormField
-  final TextEditingController _nameController = TextEditingController();
-
-  // 2. State สำหรับ DropdownButtonFormField
-  String? _selectedCategory = 'Strategy';
-  final List<String> _categories = ['Strategy', 'Family', 'Party', 'Card Game'];
-
-  // 3. State สำหรับ RadioListTile (ระดับความซับซ้อน)
-  String _complexity = 'Medium';
-
-  // 4. State สำหรับ CheckboxListTile (อุปกรณ์ที่มี)
-  bool _hasDice = false;
-  bool _hasCards = false;
-
-  // 5. State สำหรับ SwitchListTile (สถานะความพร้อม)
-  bool _isAvailable = true;
+class _ProductListScreenState extends State<ProductListScreen> {
+  late Future<List<Product>> futureProducts;
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  void _submitForm() {
-    // ตรวจสอบความถูกต้องของฟอร์มผ่าน validator
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('บันทึกข้อมูล "${_nameController.text}" เรียบร้อยแล้ว!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
+  void initState() {
+    super.initState();
+    futureProducts = fetchProducts();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('w06: Board Game Form'),
-        centerTitle: true,
+        title: const Text('DummyJSON Products API'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ----------------------------------------------------------------
-              // 1. TextFormField
-              // ----------------------------------------------------------------
-              const Text('1. ชื่อบอร์ดเกม', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'กรอกชื่อบอร์ดเกม',
-                  hintText: 'เช่น Catan, Splendor',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.casino),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'กรุณากรอกชื่อบอร์ดเกมก่อนบันทึก';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // ----------------------------------------------------------------
-              // 2. DropdownButtonFormField
-              // ----------------------------------------------------------------
-              const Text('2. หมวดหมู่หลัก', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
-                ),
-                items: _categories.map((String category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
+      body: Center(
+        child: FutureBuilder<List<Product>>(
+          future: futureProducts,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final products = snapshot.data!;
+              return ListView.builder(
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: ListTile(
+                      leading: Image.network(
+                        product.thumbnail,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.shopping_bag),
+                      ),
+                      title: Text(
+                        product.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        product.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: Text(
+                        '\$${product.price}',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                   );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedCategory = newValue;
-                  });
                 },
-              ),
-              const SizedBox(height: 20),
+              );
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
 
-              // ----------------------------------------------------------------
-              // 3. RadioListTile
-              // ----------------------------------------------------------------
-              const Text('3. ระดับความยาก (Complexity)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              RadioListTile<String>(
-                title: const Text('Easy (เล่นง่าย)'),
-                value: 'Easy',
-                groupValue: _complexity,
-                onChanged: (value) => setState(() => _complexity = value!),
-              ),
-              RadioListTile<String>(
-                title: const Text('Medium (ปานกลาง)'),
-                value: 'Medium',
-                groupValue: _complexity,
-                onChanged: (value) => setState(() => _complexity = value!),
-              ),
-              RadioListTile<String>(
-                title: const Text('Hard (ซับซ้อน)'),
-                value: 'Hard',
-                groupValue: _complexity,
-                onChanged: (value) => setState(() => _complexity = value!),
-              ),
-              const SizedBox(height: 10),
-
-              // ----------------------------------------------------------------
-              // 4. CheckboxListTile
-              // ----------------------------------------------------------------
-              const Text('4. อุปกรณ์ในกล่อง', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              CheckboxListTile(
-                title: const Text('มีลูกเต๋า (Dice)'),
-                value: _hasDice,
-                onChanged: (value) => setState(() => _hasDice = value!),
-              ),
-              CheckboxListTile(
-                title: const Text('มีการ์ดเกม (Cards)'),
-                value: _hasCards,
-                onChanged: (value) => setState(() => _hasCards = value!),
-              ),
-              const SizedBox(height: 10),
-
-              // ----------------------------------------------------------------
-              // 5. SwitchListTile
-              // ----------------------------------------------------------------
-              const Text('5. สถานะความพร้อม', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              SwitchListTile(
-                title: const Text('พร้อมสำหรับเปิดเล่น'),
-                subtitle: const Text('อุปกรณ์ครบถ้วน ไม่มีชิ้นส่วนสูญหาย'),
-                value: _isAvailable,
-                onChanged: (value) => setState(() => _isAvailable = value),
-              ),
-              const SizedBox(height: 25),
-
-              // ปุ่มกด Submit
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: _submitForm,
-                  child: const Text('บันทึกข้อมูลฟอร์ม', style: TextStyle(fontSize: 18)),
-                ),
-              ),
-            ],
-          ),
+            return const CircularProgressIndicator();
+          },
         ),
       ),
     );
