@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board Game Collector - Multi-Image Edition</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 25px;
+    }
+    
+    /* Card Grid System */
+    .card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 15px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-align: center;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      border-color: #3498db;
+    }
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .card h3 {
+      color: #2c3e50;
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+    }
+    .badge {
+      background: #e8f4f8;
+      color: #2980b9;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .card-meta {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    /* Detail View Styling */
+    .btn-back {
+      background: #34495e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      transition: background 0.2s;
+    }
+    .btn-back:hover {
+      background: #2c3e50;
+    }
+    
+    /* Gallery Styling */
+    .gallery-container {
+      margin-bottom: 25px;
+    }
+    .main-img-wrap {
+      width: 100%;
+      height: 380px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f8f9fa;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+    }
+    .main-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .thumbnail-list {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+    .thumb-img {
+      width: 90px;
+      height: 65px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      opacity: 0.65;
+      transition: all 0.2s;
+    }
+    .thumb-img:hover, .thumb-img.active {
+      opacity: 1;
+      border-color: #3498db;
+    }
+
+    .detail-box {
+      background: #f8fafc;
+      border-left: 4px solid #3498db;
+      padding: 20px;
+      border-radius: 0 8px 8px 0;
+    }
+    .detail-item {
+      margin-bottom: 12px;
+      font-size: 1rem;
+      color: #4a5568;
+    }
+    .detail-item strong {
+      color: #2d3748;
+      display: inline-block;
+      width: 180px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- หน้า 1: แสดงรายการทั้งหมด (List View) -->
+    <div id="list-view">
+      <h1>🎲 คลังสะสมบอร์ดเกม (Board Game Collector)</h1>
+      <p class="subtitle">คลิกที่การ์ดเพื่อดูรายละเอียดและเลือกชมรูปภาพของเกมแต่ละเกม</p>
+      <div class="card-list" id="game-container"></div>
+    </div>
+
+    <!-- หน้า 2: แสดงข้อมูลเฉพาะ (Detail View) -->
+    <div id="detail-view" class="hidden">
+      <button class="btn-back" onclick="showList()">← ย้อนกลับไปหน้าหลัก</button>
+      <h1 id="detail-title" style="text-align: left; margin-bottom: 20px;">ชื่อเกม</h1>
+      
+      <!-- แกลเลอรีรูปภาพหลายรูป -->
+      <div class="gallery-container">
+        <div class="main-img-wrap">
+          <img id="main-display-img" src="" alt="Main Image">
+        </div>
+        <div class="thumbnail-list" id="thumbnail-container"></div>
+      </div>
+
+      <!-- คุณสมบัติทั้ง 5 ประการ -->
+      <div class="detail-box">
+        <div class="detail-item"><strong>1. หมวดหมู่ (Category):</strong> <span id="detail-category"></span></div>
+        <div class="detail-item"><strong>2. จำนวนผู้เล่น (Players):</strong> <span id="detail-players"></span></div>
+        <div class="detail-item"><strong>3. ระยะเวลาเล่น (Playtime):</strong> <span id="detail-time"></span></div>
+        <div class="detail-item"><strong>4. คะแนนความชอบ (Rating):</strong> <span id="detail-rating"></span></div>
+        <div class="detail-item"><strong>5. รายละเอียด (Description):</strong> <span id="detail-desc"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ข้อมูลบอร์ดเกม 5 รายการ รองรับภาพมากกว่า 1 ภาพ (Array of Images)
+    const games = [
+      {
+        id: 1,
+        title: 'Catan',
+        category: 'Strategy / Resource Management',
+        players: '3-4 คน',
+        time: '60-120 นาที',
+        rating: '★ 4.5 / 5.0',
+        desc: 'เกมวางแผนสะสมทรัพยากร เพื่อสร้างถนน บ้าน และเมืองบนเกาะคาทาน',
+        images: [
+          'catan1.jpg',
+          'catan2.jpg',
+          'catan3.jpg'
+        ]
+      },
+      {
+        id: 2,
+        title: 'Ticket to Ride',
+        category: 'Family / Strategy',
+        players: '2-5 คน',
+        time: '30-60 นาที',
+        rating: '★ 4.0 / 5.0',
+        desc: 'เกมเชื่อมต่อเส้นทางรถไฟข้ามเมือง สนุก เข้าใจง่าย เหมาะกับทุกคน',
+        images: [
+          'ttr1.jpg',
+          'ttr2.jpg',
+          'ttr3.jpg'
+        ]
+      },
+     {
+        id: 3,
+        title: 'Splendor',
+        category: 'Engine Building / Card Drafting',
+        players: '2-4 คน',
+        time: '30 นาที',
+        rating: '★ 4.8 / 5.0',
+        desc: 'เกมสวมบทบาทพ่อค้าเพชร สะสมอัญมณีเพื่อซื้อการ์ดและทำคะแนน',
+        images: [
+          'splendor1.jpg',
+          'splendor2.jpg',
+          'splendor3.jpg'
+        ]
+      },
+      {
+        id: 4,
+        title: 'Wingspan',
+        category: 'Engine Building / Medium Heavy',
+        players: '1-5 คน',
+        time: '40-70 นาที',
+        rating: '★ 4.9 / 5.0',
+        desc: 'เกมดึงดูดนกชนิดต่างๆ เข้าสู่นิเวศวิทยา มีระบบการเล่นที่สมบูรณ์แบบ',
+        images: [
+          'wingspan1.jpg',
+          'wingspan2.jpg',
+          'wingspan3.jpg'
+        ]
+      },
+      {
+        id: 5,
+        title: 'Exploding Kittens',
+        category: 'Party / Push Your Luck',
+        players: '2-5 คน',
+        time: '15 นาที',
+        rating: '★ 3.8 / 5.0',
+        desc: 'การ์ดเกมสายฮา เอาชีวิตรอดจากการจูดเหมียวยกแก๊ง',
+        images: [
+          'kittens1.jpg',
+          'kittens2.jpg',
+          'kittens3.jpg'
+        ]
+      },
+    ];
+
+    // ฟังก์ชันแสดงรายการทั้งหมด
+    function renderList() {
+      const container = document.getElementById('game-container');
+      container.innerHTML = games.map(game => `
+        <div class="card" onclick="showDetail(${game.id})">
+          <img src="${game.images[0]}" alt="${game.title}">
+          <h3>${game.title}</h3>
+          <div><span class="badge">${game.category.split('/')[0]}</span></div>
+          <div class="card-meta">👥 ${game.players} | ⭐ ${game.rating}</div>
+        </div>
+      `).join('');
+    }
+
+    // ฟังก์ชันแสดงรายละเอียดพร้อมภาพหลายภาพ
+    function showDetail(id) {
+      const game = games.find(g => g.id === id);
+      if (!game) return;
+
+      document.getElementById('detail-title').innerText = game.title;
+      document.getElementById('detail-category').innerText = game.category;
+      document.getElementById('detail-players').innerText = game.players;
+      document.getElementById('detail-time').innerText = game.time;
+      document.getElementById('detail-rating').innerText = game.rating;
+      document.getElementById('detail-desc').innerText = game.desc;
+
+      const mainImg = document.getElementById('main-display-img');
+      const thumbContainer = document.getElementById('thumbnail-container');
+      
+      mainImg.src = game.images[0];
+      thumbContainer.innerHTML = game.images.map((imgUrl, index) => `
+        <img src="${imgUrl}" class="thumb-img ${index === 0 ? 'active' : ''}" onclick="changeMainImage('${imgUrl}', this)">
+      `).join('');
+
+      document.getElementById('list-view').classList.add('hidden');
+      document.getElementById('detail-view').classList.remove('hidden');
+    }
+
+    // ฟังก์ชันสลับภาพหลัก
+    function changeMainImage(url, element) {
+      document.getElementById('main-display-img').src = url;
+      document.querySelectorAll('.thumb-img').forEach(img => img.classList.remove('active'));
+      element.classList.add('active');
+    }
+
+    // กลับหน้า List View
+    function showList() {
+      document.getElementById('detail-view').classList.add('hidden');
+      document.getElementById('list-view').classList.remove('hidden');
+    }
+
+    renderList();
+  </script>
+</body>
+</html>  
