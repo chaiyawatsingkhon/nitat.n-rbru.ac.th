@@ -1,0 +1,38 @@
+{
+  "student_graduation_check": {
+    "student_id": "6500000000",
+    "summary": {
+      "credits": {
+        "minimum_required": 124,
+        "enrolled": 118,
+        "passed": 96,
+        "pending": 19,
+        "is_passed": false
+      },
+      "study_duration": {
+        "max_years_allowed": 16,
+        "years_studied": 4,
+        "current_year_level": 3,
+        "is_passed": true
+      },
+      "gpax": {
+        "minimum_required": 2.00,
+        "current_gpax": 2.82,
+        "major_gpa": 0.00,
+        "is_passed": true
+      },
+      "skill_tests": {
+        "computer_skill": {
+          "status": "FAIL",
+          "is_passed": false
+        },
+        "language_skill": {
+          "status": "FAIL",
+          "is_passed": false
+        },
+        "is_passed": false
+      }
+    },
+    "overall_graduation_status": false
+  }
+}
